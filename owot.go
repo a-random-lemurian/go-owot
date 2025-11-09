@@ -6,18 +6,24 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"golang.org/x/time/rate"
 )
 
 type OwotConn struct {
 	ws         *websocket.Conn
+	chatRate   *rate.Limiter
 	HandleRaw  func([]byte)
 	HandleChat func(*MessageChat)
+}
+
+type Config struct {
+	ChatRatelimiter *rate.Limiter
 }
 
 // Connect to the OWOT server.
 //
 // The URL argument must be a valid WebSocket URL, such as <wss://ourworldoftext.com/go-owot/ws/>
-func Dial(url string) (*OwotConn, error) {
+func Dial(url string, cfg *Config) (*OwotConn, error) {
 	headers := http.Header{}
 	ws, _, err := websocket.DefaultDialer.Dial(url, headers)
 
@@ -27,6 +33,13 @@ func Dial(url string) (*OwotConn, error) {
 
 	conn := &OwotConn{
 		ws: ws,
+	}
+
+	if cfg != nil {
+		conn.chatRate = cfg.ChatRatelimiter
+	}
+	if conn.chatRate == nil {
+		conn.chatRate = defaultChatRatelimiter
 	}
 
 	conn.initFuncs()

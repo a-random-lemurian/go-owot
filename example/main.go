@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	client, err := owot.Dial("wss://ourworldoftext.com/go-owot/ws/")
+	client, err := owot.Dial("wss://ourworldoftext.com/go-owot/ws/", nil)
 	if err != nil {
 		panic(err)
 	}

@@ -21,7 +21,7 @@ func (o *OwotConn) Chat(nickname string, message string, location string, color 
 	ctx := context.Background()
 	o.chatRate.Wait(ctx)
 
-	chat := map[string]string{}
+	chat := map[string]any{}
 
 	if location != "global" && location != "page" {
 		return fmt.Errorf("unsupported location: %s", location)
@@ -32,6 +32,7 @@ func (o *OwotConn) Chat(nickname string, message string, location string, color 
 	chat["message"] = message
 	chat["location"] = location
 	chat["color"] = "#008ec4"
+	chat["customMeta"] = customMeta
 
 	o.ws.WriteJSON(chat)
 

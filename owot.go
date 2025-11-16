@@ -1,6 +1,7 @@
 package owot
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -53,19 +54,31 @@ func (o *OwotConn) initFuncs() {
 	o.HandleChat = func(mc *MessageChat) {}
 }
 
-// Begin reading messages from the websocket. Blocks until an error is encountered
-// when reading messages from the websocket.
-func (o *OwotConn) Run() error {
+func (o *OwotConn) RunContext(ctx context.Context) error {
 	// Partially marshal the JSON file into a "partial" struct
 	// that reads the "kind" field, before fully parsing it and
 	// routing it to the appropriate function.
-	type partial struct {
-		Kind string `json:"kind"`
-	}
+	byteCh := make(chan []byte)
 
-	var message partial
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case b := <-byteCh:
+				go o.handleIncoming(b)
+			}
+		}
+	}()
 
 	for {
+		select {
+		case <-ctx.Done():
+			o.ws.Close()
+			return ctx.Err()
+		default:
+		}
+
 		// For HandleRaw(), we want to pass messages along exactly the way they are,
 		// so we don't use ReadJSON().
 		_, msgBytes, err := o.ws.ReadMessage()
@@ -73,27 +86,44 @@ func (o *OwotConn) Run() error {
 		if err != nil {
 			return err
 		}
-		o.HandleRaw(msgBytes)
+		byteCh <- msgBytes
+	}
+}
 
-		err = json.Unmarshal(msgBytes, &message)
-		if err != nil {
-			log.Printf("%v", err)
-			continue
-		}
+// handleIncoming handles a websocket message and then brings it to HandleRaw and HandleChat,
+// which are the external handler functions.
+func (o *OwotConn) handleIncoming(msgBytes []byte) error {
+	type partial struct {
+		Kind string `json:"kind"`
+	}
 
-		switch message.Kind {
-		case "chat":
-			var chat MessageChat
-			err = json.Unmarshal(msgBytes, &chat)
-			if err == nil {
-				o.HandleChat(&chat)
-			}
-		default:
-			continue
-		}
+	var message partial
 
-		if err != nil {
-			return err
+	o.HandleRaw(msgBytes)
+
+	err := json.Unmarshal(msgBytes, &message)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+
+	switch message.Kind {
+	case "chat":
+		var chat MessageChat
+		err = json.Unmarshal(msgBytes, &chat)
+		if err == nil {
+			o.HandleChat(&chat)
 		}
 	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Begin reading messages from the websocket. Blocks until an error is encountered
+// when reading messages from the websocket.
+func (o *OwotConn) Run() error {
+	return o.RunContext(context.Background())
 }

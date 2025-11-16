@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/a-random-lemurian/go-owot"
 )
@@ -16,5 +18,11 @@ func main() {
 		fmt.Printf("%s\n", b)
 	}
 
-	fmt.Println(client.Run())
+	rootCtx := context.Background()
+	ctx, cancel := context.WithCancel(rootCtx)
+	go client.RunContext(ctx)
+
+	time.Sleep(5 * time.Second)
+
+	cancel()
 }

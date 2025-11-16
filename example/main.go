@@ -13,7 +13,7 @@ func main() {
 	}
 
 	client.HandleRaw = func(b []byte) {
-		fmt.Printf("%s\n",b)
+		fmt.Printf("%s\n", b)
 	}
 
 	fmt.Println(client.Run())

@@ -3,6 +3,7 @@ package owot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"golang.org/x/time/rate"
@@ -26,6 +27,27 @@ func (p PrivateMessageType) String() string {
 	}
 }
 
+func StringToPrivateMessageType(s string) PrivateMessageType {
+switch s {
+	case "from_me":
+		return PMTFromMe
+	case "to_me":
+		return PMTToMe
+	default:
+		return 0
+	}
+}
+
+func (c *PrivateMessageType) UnmarshalJSON(data []byte) error {
+	var raw string
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	pmt := StringToPrivateMessageType(raw)
+	*c = pmt
+	return nil
+}
+
 type ChatLocation int
 
 const (
@@ -42,6 +64,27 @@ func (c ChatLocation) String() string {
 	default:
 		return ""
 	}
+}
+
+func StringToChatLocation(s string) ChatLocation {
+switch s {
+	case "page":
+		return CLPage
+	case "global":
+		return CLGlobal
+	default:
+		return 0
+	}
+}
+
+func (c *ChatLocation) UnmarshalJSON(data []byte) error {
+	var raw string
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	cl := StringToChatLocation(raw)
+	*c = cl
+	return nil
 }
 
 type MessageChat struct {
@@ -63,7 +106,7 @@ type MessageChat struct {
 	CustomMeta     map[string]any
 	RankName       string
 	RankColor      string
-	PrivateMessage PrivateMessageType
+	PrivateMessage *PrivateMessageType
 
 	// Over the wire, the date format is in milliseconds.
 	Date UnixMillis

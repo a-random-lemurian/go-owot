@@ -8,6 +8,67 @@ import (
 	"golang.org/x/time/rate"
 )
 
+type PrivateMessageType int
+
+const (
+	PMTFromMe = iota
+	PMTToMe
+)
+
+func (p PrivateMessageType) String() string {
+	switch p {
+	case PMTFromMe:
+		return "from_me"
+	case PMTToMe:
+		return "to_me"
+	default:
+		return ""
+	}
+}
+
+type ChatLocation int
+
+const (
+	CLPage = iota
+	CLGlobal
+)
+
+func (c ChatLocation) String() string {
+	switch c {
+	case CLPage:
+		return "page"
+	case CLGlobal:
+		return "global"
+	default:
+		return ""
+	}
+}
+
+type MessageChat struct {
+	Kind         string
+	Nickname     string
+	RealUsername string
+
+	// The user's ID. Rendered as a string due to futureproofing for
+	// IP-based hash IDs.
+	Id ID
+
+	Message        string
+	Registered     bool
+	Location       ChatLocation
+	Op             bool
+	Admin          bool
+	Staff          bool
+	Color          string
+	CustomMeta     map[string]any
+	RankName       string
+	RankColor      string
+	PrivateMessage PrivateMessageType
+
+	// Over the wire, the date format is in milliseconds.
+	Date UnixMillis
+}
+
 var defaultChatRatelimiter = rate.NewLimiter(rate.Limit(2), 1) // two messages per second
 
 // Send a chat message.

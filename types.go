@@ -2,6 +2,20 @@ package owot
 
 // {"kind":"chat","nickname":"ztunedd","realUsername":"discor","id":8980,"message":"i can read that smh","registered":true,"location":"global","op":false,"admin":false,"staff":false,"color":"#5865F2","customMeta":{"discordUserId":"1128340150477398106"},"rankName":"Discord","rankColor":"#05A72C5","date":1744398348259}
 
+type PrivateMessageType int
+
+const (
+	PMTFromMe = iota
+	PMTToMe
+)
+
+type ChatLocation int
+
+const (
+	CLPage = iota
+	CLGlobal
+)
+
 type MessageChat struct {
 	Kind string
 	Nickname string
@@ -13,7 +27,7 @@ type MessageChat struct {
 
 	Message string
 	Registered bool
-	Location string
+	Location ChatLocation
 	Op bool
 	Admin bool
 	Staff bool
@@ -21,6 +35,7 @@ type MessageChat struct {
 	CustomMeta map[string]any
 	RankName string
 	RankColor string
+	PrivateMessage PrivateMessageType
 
 	// Over the wire, the date format is in milliseconds.
 	Date UnixMillis

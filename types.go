@@ -8,6 +8,13 @@ const (
 	PMTFromMe = iota
 	PMTToMe
 )
+func (p PrivateMessageType) String() string {
+	switch p {
+	case PMTFromMe: return "from_me"
+	case PMTToMe: return "to_me"
+default: return ""	
+}
+}
 
 type ChatLocation int
 
@@ -15,6 +22,14 @@ const (
 	CLPage = iota
 	CLGlobal
 )
+
+func (c ChatLocation) String() string {
+	switch c {
+	case CLPage: return "page"
+	case CLGlobal: return "global"
+default: return ""	
+}
+}
 
 type MessageChat struct {
 	Kind string

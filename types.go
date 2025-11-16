@@ -18,7 +18,7 @@ type MessageChat struct {
 	Admin bool
 	Staff bool
 	Color string
-	CustomMeta interface{}
+	CustomMeta map[string]any
 	RankName string
 	RankColor string
 
